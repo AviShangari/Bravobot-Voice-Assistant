@@ -1,0 +1,33 @@
+{
+    "intents" : [
+        {
+            "tag": "Greeting",
+            "patterns": [
+                "Hi",
+                "Hey",
+                "What's up?",
+                "How are you doing?"
+            ],
+            "responses": [
+                "Hey Avi!",
+                "Hi, what can I do for you today?"
+            ]
+        },
+        {
+            "tag": "ChatGPT",
+            "patterns": [
+                "Question",
+                "I have a question",
+                "I got a question",
+                "I need help",
+                "I need help with something",
+                "Can I get some help?"
+            ],
+            "responses": [
+                "Hey Avi! What can I do for you today?",
+                "Hi, how can I help?",
+                "Ask away!"
+            ]
+        } 
+    ]
+}
