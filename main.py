@@ -5,6 +5,7 @@ import tkinter as tk
 import sys
 import os
 import threading
+from PIL import ImageTk, Image
 from dotenv import load_dotenv
 from neuralintents import GenericAssistant
 
@@ -16,21 +17,40 @@ class Assistant:
 
     def __init__(self) -> None:
 
+        # Set-up the microphone and speakers
         self.recognizer = sr.Recognizer()
         self.speaker = tts.init()
         voices = self.speaker.getProperty("voices")
-        self.speaker.setProperty('voice', voices[1].id)
-        
-        self.assistant = GenericAssistant("intents.json", intent_methods={"ChatGPT": self.ask_anything})
+        self.speaker.setProperty('voice', voices[0].id)
+        self.speaker.setProperty('rate', 200)
+
+        # Initialize and train the Voice Assistant Model with 'Intents'
+        self.assistant = GenericAssistant("intents.json", intent_methods={"ChatGPT": self.ask_anything, "Music": self.play_song})
         self.assistant.train_model()
 
+        # Initialize tkinter and set canvas size
         self.root = tk.Tk()
-        self.label = tk.Label(text="👾", font=("Arial", 120))
-        self.label.config(fg="purple")
+        self.root.geometry("400x400")
+
+        # Set Transparency
+        self.root.attributes('-alpha', 0.5)
+
+        # Set the frame for tkinter
+        self.frame = tk.Frame(self.root, width=400, height=400)
+        self.frame.pack()
+        self.frame.place(anchor='center', relx=0.5, rely=0.5)
+
+        # Create an object of tkinter ImageTk
+        img = ImageTk.PhotoImage(Image.open("OFR_Demonic.jpg"))
+
+        # Create a Label Widget to display the text or Image
+        self.label = tk.Label(self.frame, image = img)
         self.label.pack()
 
-        threading.Thread(target=self.run_assistant).start()
-
+        # Create a seperate thread to listen to the user
+        self.thread = threading.Thread(target=self.run_assistant)
+        self.thread.start()
+        
         self.root.mainloop()
 
 
@@ -44,13 +64,16 @@ class Assistant:
                     text = self.recognizer.recognize_google(audio)
                     text = text.lower()
 
-                    if "hey luna" in text:
-                        self.label.config(fg="red")
+                    if "bravo" in text:
+                        self.root.attributes('-alpha', 1)
+                        self.speaker.say("Yes?")
+                        self.speaker.runAndWait()
+                        self.recognizer.adjust_for_ambient_noise(mic, duration=0.2)
                         audio = self.recognizer.listen(mic)
                         text = self.recognizer.recognize_google(audio)
                         text = text.lower()
 
-                        if text == "see you later":
+                        if text == "bye":
                             self.speaker.say("See you later!")
                             self.speaker.runAndWait()
                             self.speaker.stop()
@@ -65,10 +88,10 @@ class Assistant:
                                     self.speaker.say(response)
                                     self.speaker.runAndWait()
                             
-                            self.label.config(fg="purple")
+                            self.root.attributes('-alpha', 0.5)
             except Exception as e:
                 print(e)
-                self.label.config(fg="purple")
+                self.root.attributes('-alpha', 0.5)
                 continue
     
 
@@ -76,11 +99,14 @@ class Assistant:
 
         conversation = ""
         username = "Avi"
-        bot_name = "Bravobot"
+        bot_name = "BravoBot"
+
+        self.speaker.say("Activating Query Mode. How can I help you today?")
+        self.speaker.runAndWait()
 
         while True:
             try:
-                self.label.config(fg="green")
+                self.root.attributes('-alpha', 1)
                 with sr.Microphone(device_index=1) as mic:
                     self.recognizer.adjust_for_ambient_noise(mic, duration=0.3)
                     audio = self.recognizer.listen(mic)
@@ -110,13 +136,19 @@ class Assistant:
                 self.speaker.runAndWait()
 
                 if text.lower() == 'thank you':
-                    self.label.config(fg="purple")
+                    self.root.attributes('-alpha', 0.5)
                     break
             
             except:
                 continue
         
+    
+    def play_song(self):
+        
+        self.speaker.say("What song do you want me to play?")
+        self.speaker.runAndWait()
 
 
 if __name__=="__main__":
     Assistant()
+    print("\n Voice Assistant Terminated")

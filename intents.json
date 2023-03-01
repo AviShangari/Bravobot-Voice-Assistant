@@ -28,6 +28,19 @@
                 "Hi, how can I help?",
                 "Ask away!"
             ]
-        } 
+        },
+        {
+            "tag": "Music",
+            "patterns": [
+                "Play a song",
+                "I want to play a song",
+                "Can you play a song?",
+                "Can you play a song for me?",
+                "Play this song for me"
+            ],
+            "responses": [
+                "Hey Avi! Which song do you want to play?"
+            ]
+        }
     ]
 }
