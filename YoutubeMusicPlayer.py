@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import time
 import os
 
+# Load the env variables and assign them to their respective variables
 load_dotenv()
 url = 'https://music.youtube.com/'
 options = uc.ChromeOptions()
@@ -15,8 +16,10 @@ driver.get(url)
 USERNAME = os.getenv("YT_USERNAME")
 PASSWORD = os.getenv("YT_PASSWORD")
 
-def log_in():
-    
+def log_in() -> None:
+    """
+    This function logs into the YouTube Music account using Selenium.
+    """
 
     WebDriverWait(driver, timeout=10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.sign-in-link.ytmusic-nav-bar')))
     driver.find_element(by=By.CSS_SELECTOR, value='.sign-in-link.ytmusic-nav-bar').click()
@@ -34,7 +37,12 @@ def log_in():
     driver.find_element(by=By.CSS_SELECTOR, value='.VfPpkd-LgbsSe-OWXEXe-k8QpJ:not(:disabled)').click()
 
 
-def play_song(song: str):
+def play_song(song: str) -> None:
+    """
+    Plays the song requested by the user.\n
+    Takes one paramter of type <str> which is the song you want to play.\n
+    Sample usage: ```play_song("Like This by NF")```
+    """
     search_button = 'tp-yt-paper-icon-button.ytmusic-search-box, input.ytmusic-search-box, input.ytmusic-search-box::placeholder'
     WebDriverWait(driver, timeout=7).until(EC.presence_of_element_located((By.CSS_SELECTOR, search_button)))
     driver.find_element(by=By.CSS_SELECTOR, value=search_button).click()
@@ -51,52 +59,47 @@ def play_song(song: str):
     driver.find_element(by=By.XPATH, value=song_choice).click()
 
 
-def play():
+def play() -> None:
+    """
+    Resumes a paused song.
+    """
     play_button = '/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[1]/div/tp-yt-paper-icon-button[3]'
     WebDriverWait(driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, play_button)))
     driver.find_element(by=By.XPATH, value=play_button).click()
 
 
-def pause():
+def pause() -> None:
+    """
+    Pauses the song being played at the current time.
+    """
     pause_button = '/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[1]/div/tp-yt-paper-icon-button[3]'
     WebDriverWait(driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, pause_button)))
     driver.find_element(by=By.XPATH, value=pause_button).click()
 
 
-def repeat(word):
+def repeat(word: str) -> None:
+    """
+    Repeats the song being played right now.\n
+    Takes an argument of type <str> which decides whether or not to loop the song.\n
+    Sample usage to repeat a song: ```repeat(song)``` \n
+    Sample usage to turn off repeat: ```repeat(off)``` \n
+    """
     if word == 'song':
         repeat_on = '/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[3]/div/tp-yt-paper-icon-button[2]'
         WebDriverWait(driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, repeat_on)))
         driver.find_element(by=By.XPATH, value=repeat_on).click()
         time.sleep(0.5)
         driver.find_element(by=By.XPATH, value=repeat_on).click()
+
     if word == 'off':
         rep_off = '/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[3]/div/tp-yt-paper-icon-button[2]'
         WebDriverWait(driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, rep_off)))
         driver.find_element(by=By.XPATH, value=rep_off).click()
 
 
-def queue(song: str):
-    search_button = 'tp-yt-paper-icon-button.ytmusic-search-box, input.ytmusic-search-box, input.ytmusic-search-box::placeholder'
-    WebDriverWait(driver, timeout=7).until(EC.presence_of_element_located((By.CSS_SELECTOR, search_button)))
-    driver.find_element(by=By.CSS_SELECTOR, value=search_button).click()
-    driver.find_element(by=By.CSS_SELECTOR, value='input.ytmusic-search-box').send_keys(song)
-    driver.find_element(by=By.CSS_SELECTOR, value='input.ytmusic-search-box').send_keys(Keys.ENTER)
-    time.sleep(3)
-
-    sub_lst = '/html/body/ytmusic-app/ytmusic-app-layout/div[3]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[2]/ytmusic-shelf-renderer[1]/div[3]/ytmusic-responsive-list-item-renderer/ytmusic-menu-renderer/tp-yt-paper-icon-button/tp-yt-iron-icon'
-    WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, sub_lst)))
-    driver.find_element(by=By.XPATH, value=sub_lst).click()
-
-    add_to_queue = '/html/body/ytmusic-app/ytmusic-popup-container/tp-yt-iron-dropdown/div/ytmusic-menu-popup-renderer/tp-yt-paper-listbox/ytmusic-menu-service-item-renderer[2]/yt-formatted-string'
-    WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, add_to_queue)))
-    driver.find_element(by=By.XPATH, value=add_to_queue).click()
-
-    song_choice = '/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-nav-bar/div[1]/a'
-    WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, song_choice)))
-    driver.find_element(by=By.XPATH, value=song_choice).click()
-
-
 def close():
+    """
+    Exits the webdriver playing the songs.
+    """
     driver.quit()
 

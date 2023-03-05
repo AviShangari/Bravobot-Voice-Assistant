@@ -79,7 +79,7 @@ class Assistant:
     def speak(self, prompt: str) -> None:
         """
         A function that speaks the provided prompt. \n
-        Takes a singular string argument in the form: self.speak(prompt: str)
+        Takes a singular string argument in the form: ```self.speak("How can I assist you today?")```
         """
         self.speaker.say(prompt)
         self.speaker.runAndWait()
@@ -126,7 +126,7 @@ class Assistant:
     def ask_anything(self) -> None:
         """
         Uses OpenAPI to answer any general/specific queries.\n
-        Works by sending a prompt to 'text'davinci-003'engine' and generates a response to return to the user.
+        Works by sending a prompt to 'text'davinci-003 engine' and generates a response to return to the user.
         """
 
         conversation = ""
