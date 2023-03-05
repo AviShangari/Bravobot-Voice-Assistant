@@ -41,6 +41,37 @@
             "responses": [
                 "Hey Avi! Which song do you want to play?"
             ]
+        },
+        {
+            "tag": "PausePlayMusic",
+            "patterns": [
+                "Stop the music",
+                "Can you stop the song",
+                "Can you pause the song",
+                "Can you stop the music",
+                "Can you pause the music",
+                "Pause the music",
+                "Can you resume the music",
+                "Can you resume the song",
+                "Resume the song"
+            ],
+            "responses": [
+                "Music Paused"
+            ]
+        },
+        {
+            "tag": "QueueMusic",
+            "patterns": [
+                "Can you play a song after this one",
+                "Play this song next",
+                "Queue this song next",
+                "Queue this song",
+                "Play a song after this",
+                "Play a song after this one"
+            ],
+            "responses": [
+                "Music Queued"
+            ]
         }
     ]
 }
