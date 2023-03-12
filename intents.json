@@ -34,9 +34,10 @@
             "patterns": [
                 "Play a song",
                 "I want to play a song",
-                "Can you play a song?",
-                "Can you play a song for me?",
-                "Play this song for me"
+                "Can you play a song",
+                "Can you play the song",
+                "Play the song",
+                "I wanna play the song"
             ],
             "responses": [
                 "Hey Avi! Which song do you want to play?"

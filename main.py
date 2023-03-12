@@ -33,6 +33,9 @@ class Assistant:
         # Set-up the link between the tags in intents.json and their functionality
         self.intent_mapping = {"ChatGPT": self.ask_anything, "Music": self.play_song, "PausePlayMusic": self.pause_music}
 
+        # Set-up a variable to store song names for song requests
+        self.song = ""
+
         # Initialize and train the Voice Assistant Model with 'Intents'
         self.assistant = GenericAssistant("intents.json", intent_methods=self.intent_mapping)
         self.assistant.train_model()
@@ -105,11 +108,15 @@ class Assistant:
                         self.speak("See you later!")
                         self.speaker.stop()
                         self.root.destroy()
-                        YoutubeMusicPlayer.close()
                         sys.exit()
 
                     else:
                         if text is not None:
+                            if (self.identify_music_request(text)):
+                                musicIdentifier = text.split("song")
+                                text = musicIdentifier[0]
+                                self.song = musicIdentifier[1]
+
                             response = self.assistant.request(text)
                             
                             if response is not None:
@@ -174,12 +181,12 @@ class Assistant:
         Functionality includes asking user's song choice and playing it using Selenium.
         """
 
-        self.speak("What song do you want me to play?")
+        # self.speak("What song do you want me to play?")
         try:
             self.root.attributes('-alpha', 1)                
-            text = self.get_command()
-            self.speak("Playing " + text)
-            YoutubeMusicPlayer.play_song(text)
+            # text = self.get_command()
+            self.speak("Playing " + self.song)
+            YoutubeMusicPlayer.play_song(self.song)
             self.root.attributes('-alpha, 0.5')
         except:
             self.root.attributes('-alpha', 0.5)
@@ -191,8 +198,16 @@ class Assistant:
         """
         YoutubeMusicPlayer.pause()
 
+    
+    def identify_music_request(self, text: str) -> bool:
+
+        if "play" in text.lower() and "song" in text.lower():
+            return True
+        return False
+
 
 
 if __name__=="__main__":
     Assistant()
+    YoutubeMusicPlayer.close()
     print("\n Voice Assistant Terminated")
