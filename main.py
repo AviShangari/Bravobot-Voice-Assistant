@@ -5,7 +5,6 @@ import tkinter as tk
 import sys
 import os
 import threading
-import time
 import YoutubeMusicPlayer
 from PIL import ImageTk, Image
 from dotenv import load_dotenv
@@ -200,6 +199,9 @@ class Assistant:
 
     
     def identify_music_request(self, text: str) -> bool:
+        """
+        Identifies if the voice command is a music request or not.
+        """
 
         if "play" in text.lower() and "song" in text.lower():
             return True

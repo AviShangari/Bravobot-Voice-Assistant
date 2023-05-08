@@ -59,20 +59,6 @@
             "responses": [
                 "Music Paused"
             ]
-        },
-        {
-            "tag": "QueueMusic",
-            "patterns": [
-                "Can you play a song after this one",
-                "Play this song next",
-                "Queue this song next",
-                "Queue this song",
-                "Play a song after this",
-                "Play a song after this one"
-            ],
-            "responses": [
-                "Music Queued"
-            ]
         }
     ]
 }

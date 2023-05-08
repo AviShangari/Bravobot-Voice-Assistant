@@ -51,16 +51,24 @@ def play_song(song: str) -> None:
     driver.find_element(by=By.CSS_SELECTOR, value='input.ytmusic-search-box').send_keys(Keys.ENTER)
     time.sleep(2)
 
-    # Filter the results by 'songs' (removing all album options)
-    option_lst = '/html/body/ytmusic-app/ytmusic-app-layout/div[3]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[1]/ytmusic-chip-cloud-renderer/iron-selector/ytmusic-chip-cloud-chip-renderer[1]/div/a'
-    WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, option_lst)))
-    driver.find_element(by=By.XPATH, value=option_lst).click()
-    time.sleep(1)
+    try:
+        # Play the top result matching the entered song name
+        song_name = '/html/body/ytmusic-app/ytmusic-app-layout/div[3]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[2]/ytmusic-card-shelf-renderer/div/div[2]/div[1]/div/div[2]/div[2]/yt-button-renderer[1]/yt-button-shape/button'
+        WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, song_name)))
+        driver.find_element(by=By.XPATH, value=song_name).click()
 
-    # Play the top result matching the entered song name
-    song_name = '/html/body/ytmusic-app/ytmusic-app-layout/div[3]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[2]/ytmusic-shelf-renderer/div[3]/ytmusic-responsive-list-item-renderer[1]/div[1]/ytmusic-item-thumbnail-overlay-renderer/div/ytmusic-play-button-renderer/div/yt-icon'
-    WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, song_name)))
-    driver.find_element(by=By.XPATH, value=song_name).click()
+    except:
+        # Filter the results by 'songs' (removing all album options)
+        option_lst = '/html/body/ytmusic-app/ytmusic-app-layout/div[3]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[1]/ytmusic-chip-cloud-renderer/iron-selector/ytmusic-chip-cloud-chip-renderer[1]/div/a'
+        WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, option_lst)))
+        driver.find_element(by=By.XPATH, value=option_lst).click()
+        time.sleep(1)
+
+        # Play the top song in the 'songs' tab
+        song_name = '/html/body/ytmusic-app/ytmusic-app-layout/div[3]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[2]/ytmusic-shelf-renderer[1]/div[3]/ytmusic-responsive-list-item-renderer[1]/div[1]/ytmusic-item-thumbnail-overlay-renderer/div/ytmusic-play-button-renderer'
+        WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, song_name)))
+        driver.find_element(by=By.XPATH, value=song_name).click()
+        time.sleep(0.5)
 
     # Return to home page
     home_button = '/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-nav-bar/div[1]'
