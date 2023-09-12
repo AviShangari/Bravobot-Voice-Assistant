@@ -5,17 +5,19 @@ import tkinter as tk
 import sys
 import os
 import threading
-import YoutubeMusicPlayer
+import whisper
+import torch
+# import YoutubeMusicPlayer
 from PIL import ImageTk, Image
 from dotenv import load_dotenv
-from neuralintents import GenericAssistant
+# from neuralintents import GenericAssistant
 
 # Load the env variables and assign them to their respective variables
 load_dotenv()
 openai.api_key = os.getenv("OPEN_API_KEY")
-
+ 
 # Log into YouTube Music
-YoutubeMusicPlayer.log_in()
+# YoutubeMusicPlayer.log_in()
 
 
 class Assistant:
@@ -25,19 +27,23 @@ class Assistant:
         # Set-up the microphone and speakers
         self.recognizer = sr.Recognizer()
         self.speaker = tts.init()
-        voices = self.speaker.getProperty("voices")
-        self.speaker.setProperty('voice', voices[0].id)
+        self.voices = self.speaker.getProperty("voices")
+        self.speaker.setProperty('voice', self.voices[0].id)
         self.speaker.setProperty('rate', 200)
 
+        # Set-up the Whisper offline transcriber
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = whisper.load_model("small", device=device)
+
         # Set-up the link between the tags in intents.json and their functionality
-        self.intent_mapping = {"ChatGPT": self.ask_anything, "Music": self.play_song, "PausePlayMusic": self.pause_music}
+        self.intent_mapping = {"ChatGPT": self.ask_anything}
 
         # Set-up a variable to store song names for song requests
         self.song = ""
 
-        # Initialize and train the Voice Assistant Model with 'Intents'
-        self.assistant = GenericAssistant("intents.json", intent_methods=self.intent_mapping)
-        self.assistant.train_model()
+        # Set-up wake words for different modules
+        self.gpt_wake = "luna"
+        self.bot_wake = "bravo"
 
         # Initialize tkinter and set canvas size
         self.root = tk.Tk()
@@ -52,10 +58,10 @@ class Assistant:
         self.frame.place(anchor='center', relx=0.5, rely=0.5)
 
         # Create an object of tkinter ImageTk
-        img = ImageTk.PhotoImage(Image.open("OFR_Demonic.jpg"))
+        self.img = ImageTk.PhotoImage(Image.open("OFR_Demonic.jpg"))
 
         # Create a Label Widget to display the text or Image
-        self.label = tk.Label(self.frame, image = img)
+        self.label = tk.Label(self.frame, image = self.img)
         self.label.pack()
 
         # Create a seperate thread to listen to the user
@@ -70,11 +76,16 @@ class Assistant:
         A function that gets the user command and returns it in the form a string
         """
         with sr.Microphone(device_index=1) as mic:
-            self.recognizer.adjust_for_ambient_noise(mic, duration=0.3)
+            self.recognizer.adjust_for_ambient_noise(mic, duration=0.2)
             audio = self.recognizer.listen(mic)
 
+            with open("audio.wav", "wb") as f:
+                f.write(audio.get_wav_data())
             
-        text = self.recognizer.recognize_google(audio)
+            result = self.model.transcribe("audio.wav")
+            text = result["text"]
+
+        print(f'Input: {text}')
         return text
     
 
@@ -87,6 +98,20 @@ class Assistant:
         self.speaker.runAndWait()
 
 
+    def switch_profiles(self, name: str) -> None:
+        
+        self.label.destroy()
+        self.img = ImageTk.PhotoImage(Image.open(name))
+        self.label = tk.Label(self.frame, image = self.img)
+        self.label.pack()
+
+        if name == "OFR_Girl.jpg":
+            self.speaker.setProperty('voice', self.voices[1].id)
+        else:
+            self.speaker.setProperty('voice', self.voices[0].id)
+
+
+
     def run_assistant(self) -> None:
         """
         Core of the assistant. Waits for user input and then executes commands based on user inputs. \n
@@ -97,16 +122,19 @@ class Assistant:
                 text = self.get_command()
                 text = text.lower()
 
-                if "bravo" in text:
-                    self.root.attributes('-alpha', 1)
-                    self.speak("Yes?")
-                    text = self.get_command()
-                    text = text.lower()
+                if self.bot_wake in text:
 
-                    if text == "bye":
+                    self.switch_profiles("OFR_Demonic.jpg")
+
+                    self.root.attributes('-alpha', 1)
+                    text = text.split("bravo")
+                    text = text[1]
+
+                    if "bye" in text:
                         self.speak("See you later!")
                         self.speaker.stop()
                         self.root.destroy()
+                        # YoutubeMusicPlayer.close()
                         sys.exit()
 
                     else:
@@ -115,13 +143,15 @@ class Assistant:
                                 musicIdentifier = text.split("song")
                                 text = musicIdentifier[0]
                                 self.song = musicIdentifier[1]
-
-                            response = self.assistant.request(text)
-                            
-                            if response is not None:
-                                self.speak(response)
+                                # self.play_song()
                         
                         self.root.attributes('-alpha', 0.5)
+                
+
+                elif self.gpt_wake in text:
+                    self.ask_anything()
+                    self.switch_profiles(name="OFR_Demonic.jpg")
+                    self.root.attributes('-alpha', 0.5)
 
             except Exception as e:
                 print(e)
@@ -134,12 +164,13 @@ class Assistant:
         Uses OpenAPI to answer any general/specific queries.\n
         Works by sending a prompt to 'text'davinci-003 engine' and generates a response to return to the user.
         """
+        self.switch_profiles('OFR_Girl.jpg')
 
         conversation = ""
         username = "Avi"
-        bot_name = "BravoBot"
+        bot_name = "GPT"
 
-        self.speak("Activating Query Mode. How can I help you today?")
+        self.speak("How can I help you today?")
 
         while True:
             try:
@@ -154,48 +185,46 @@ class Assistant:
                     prompt=conversation,
                     temperature=0.7,
                     max_tokens=256,
-                    top_p=1,
-                    frequency_penalty=0,
-                    presence_penalty=0
+                    n=1,
+                    stop=None
                 )
 
                 response_str = response["choices"][0]["text"].replace("\n", "")
                 response_str = response_str.split(username + ":", 1)[0].split(bot_name + ":", 1)[0]
                 conversation += response_str
-                print(response_str)
+                print(response_str + "\n")
 
                 self.speak(response_str)
 
-                if text.lower() == 'thank you':
+                if text.lower() == " thank you." or text.lower == " thank you.":
                     self.root.attributes('-alpha', 0.5)
                     break
             
             except:
                 continue
-        
-    
-    def play_song(self) -> None:
-        """
-        Plays a song of the user's preference.\n
-        Functionality includes asking user's song choice and playing it using Selenium.
-        """
 
-        # self.speak("What song do you want me to play?")
-        try:
-            self.root.attributes('-alpha', 1)                
-            # text = self.get_command()
-            self.speak("Playing " + self.song)
-            YoutubeMusicPlayer.play_song(self.song)
-            self.root.attributes('-alpha, 0.5')
-        except:
-            self.root.attributes('-alpha', 0.5)
+    
+    # def play_song(self) -> None:
+    #     """
+    #     Plays a song of the user's preference.\n
+    #     Functionality includes asking user's song choice and playing it using Selenium.
+    #     """
+
+    #     # self.speak("What song do you want me to play?")
+    #     try:
+    #         self.root.attributes('-alpha', 1)                
+    #         self.speak("Playing " + self.song)
+    #         YoutubeMusicPlayer.play_song(self.song)
+    #         self.root.attributes('-alpha', 0.5)
+    #     except:
+    #         self.root.attributes('-alpha', 0.5)
     
     
-    def pause_music(self) -> None:
-        """
-        This function pauses/resumes a song.
-        """
-        YoutubeMusicPlayer.pause()
+    # def pause_music(self) -> None:
+    #     """
+    #     This function pauses/resumes a song.
+    #     """
+    #     YoutubeMusicPlayer.pause()
 
     
     def identify_music_request(self, text: str) -> bool:
@@ -211,5 +240,5 @@ class Assistant:
 
 if __name__=="__main__":
     Assistant()
-    YoutubeMusicPlayer.close()
+    # YoutubeMusicPlayer.close()
     print("\n Voice Assistant Terminated")

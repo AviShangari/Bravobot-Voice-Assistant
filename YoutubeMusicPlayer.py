@@ -53,7 +53,7 @@ def play_song(song: str) -> None:
 
     try:
         # Play the top result matching the entered song name
-        song_name = '/html/body/ytmusic-app/ytmusic-app-layout/div[3]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[2]/ytmusic-card-shelf-renderer/div/div[2]/div[1]/div/div[2]/div[2]/yt-button-renderer[1]/yt-button-shape/button'
+        song_name = '/html/body/ytmusic-app/ytmusic-app-layout/div[4]/ytmusic-search-page/ytmusic-tabbed-search-results-renderer/div[2]/ytmusic-section-list-renderer/div[2]/ytmusic-card-shelf-renderer/div/div[2]/div[1]/div/div[2]/div[2]/yt-button-renderer[1]/yt-button-shape/button/yt-touch-feedback-shape/div'
         WebDriverWait(driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, song_name)))
         driver.find_element(by=By.XPATH, value=song_name).click()
 
