@@ -29,5 +29,3 @@ def summarize():
     
     response_str = response["choices"][0]["text"]
     print(response_str)
-
-summarize()

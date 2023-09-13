@@ -7,10 +7,15 @@ import os
 import threading
 import whisper
 import torch
-# import YoutubeMusicPlayer
+import boto3
+import pydub
+from pydub import playback
+import DetermineIntent
+import Summarize
 from PIL import ImageTk, Image
 from dotenv import load_dotenv
-# from neuralintents import GenericAssistant
+# import YoutubeMusicPlayer
+
 
 # Load the env variables and assign them to their respective variables
 load_dotenv()
@@ -36,7 +41,7 @@ class Assistant:
         self.model = whisper.load_model("small", device=device)
 
         # Set-up the link between the tags in intents.json and their functionality
-        self.intent_mapping = {"ChatGPT": self.ask_anything}
+        self.intent_mapping = {"Summarize": Summarize.summarize}
 
         # Set-up a variable to store song names for song requests
         self.song = ""
@@ -89,13 +94,37 @@ class Assistant:
         return text
     
 
+    def create_speech(self, text, output_file):
+        polly = boto3.client('polly', region_name='ca-central-1')
+
+        response = polly.synthesize_speech(
+            Text = text,
+            OutputFormat = 'mp3',
+            VoiceId = 'Amy',
+            Engine = 'neural'
+        )
+
+        with open(output_file, 'wb') as f:
+            f.write(response['AudioStream'].read())
+    
+
+    def play_audio(self, file):
+        sound =  pydub.AudioSegment.from_file(file, format='mp3')
+        playback.play(sound)
+
+
     def speak(self, prompt: str) -> None:
         """
         A function that speaks the provided prompt. \n
         Takes a singular string argument in the form: ```self.speak("How can I assist you today?")```
         """
-        self.speaker.say(prompt)
-        self.speaker.runAndWait()
+        self.create_speech(prompt, 'response.mp3')
+        self.play_audio('response.mp3')
+
+    
+    def get_intent(self, key) -> None:
+        """Execute an action based on the intent of the user's message """
+        self.intent_mapping[key]()
 
 
     def switch_profiles(self, name: str) -> None:
@@ -124,12 +153,13 @@ class Assistant:
 
                 if self.bot_wake in text:
 
+                    self.speak("What's up?")
                     self.switch_profiles("OFR_Demonic.jpg")
-
                     self.root.attributes('-alpha', 1)
-                    text = text.split("bravo")
-                    text = text[1]
 
+                    text = self.get_command()
+                    text = text.lower()
+                    
                     if "bye" in text:
                         self.speak("See you later!")
                         self.speaker.stop()
@@ -139,11 +169,7 @@ class Assistant:
 
                     else:
                         if text is not None:
-                            if (self.identify_music_request(text)):
-                                musicIdentifier = text.split("song")
-                                text = musicIdentifier[0]
-                                self.song = musicIdentifier[1]
-                                # self.play_song()
+                            self.get_intent(DetermineIntent.get_results(text))
                         
                         self.root.attributes('-alpha', 0.5)
                 
